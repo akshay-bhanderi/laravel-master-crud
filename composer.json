@@ -1,0 +1,24 @@
+{
+    "name": "akshay-bhanderi/laravel-master-crud",
+    "description": "Shared master-CRUD scaffolding (base controller, model traits, DataTables grid view, form components, access helper) for Laravel admin panels.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AkshayBhanderi\\LaravelMasterCrud\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AkshayBhanderi\\LaravelMasterCrud\\MasterCrudServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
