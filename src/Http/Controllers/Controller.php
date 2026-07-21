@@ -68,4 +68,26 @@ class Controller extends BaseController
 
         return response()->json(['status' => 200, 'message' => $message]);
     }
+
+    public static function get_image_from_id($passed_id = '', $type = 'url')
+    {
+        if (empty($passed_id)) {
+            return asset('/assets/inlancer_portal/img/placeholder.png');
+        }
+
+        $result = \DB::table('images')
+            ->where('image_id', $passed_id)
+            ->where('is_delete', 0)
+            ->first();
+
+        if (empty($result)) {
+            return asset('/assets/inlancer_portal/img/placeholder.png');
+        }
+
+        if ($type == 'asset') {
+            return asset($result->image_original_url);
+        }
+
+        return url($result->image_original_url);
+    }
 }

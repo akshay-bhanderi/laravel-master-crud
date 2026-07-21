@@ -10,16 +10,18 @@ namespace AkshayBhanderi\LaravelMasterCrud\Support;
  */
 class Modules
 {
-    public static function controller(string $shortName): string
+    public static function controller(string $shortName, string $subpath = 'master'): string
     {
-        $appClass = 'App\\Http\\Controllers\\portal\\master\\'.$shortName;
+        $prefix = $subpath !== '' ? $subpath.'\\' : '';
+        $appClass = 'App\\Http\\Controllers\\portal\\'.$prefix.$shortName;
 
         return class_exists($appClass) ? $appClass : 'AkshayBhanderi\\LaravelMasterCrud\\Http\\Controllers\\'.$shortName;
     }
 
-    public static function model(string $shortName): string
+    public static function model(string $shortName, string $subpath = 'master'): string
     {
-        $appClass = 'App\\Models\\portal\\master\\'.$shortName;
+        $prefix = $subpath !== '' ? $subpath.'\\' : '';
+        $appClass = 'App\\Models\\portal\\'.$prefix.$shortName;
 
         return class_exists($appClass) ? $appClass : 'AkshayBhanderi\\LaravelMasterCrud\\Models\\'.$shortName;
     }
