@@ -1,0 +1,1 @@
+<div class="col-md-12"><h5>{{ array_key_last($breadcrumb) }}</h5></div>

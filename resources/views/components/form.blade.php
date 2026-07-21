@@ -1,0 +1,1 @@
+<form id="{{$id ?? ''}}" action="{{ $action ?? route(( $data['route'] ?? $route).'.save') ?? '' }}" enctype="{{ $enctype ?? 'multipart/form-data'}}"  method="{{$method ?? 'post'}}" >

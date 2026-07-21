@@ -319,9 +319,8 @@ trait HasMasterCrudHelpers
 
         $fields = array_keys($passed_data);
         foreach ($fields as $field) {
-            try {
+            if (array_key_exists($field, $params)) {
                 $data[$field] = $params[$field];
-            } catch (\Exception $e) {
             }
         }
 
