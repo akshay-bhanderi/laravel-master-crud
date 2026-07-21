@@ -31,41 +31,36 @@
     </select>
 </div>
 
-<ul class="nav nav-tabs d-none d-md-flex">
+<div class="btn-group d-none d-md-flex" role="group" aria-label="Status filter">
     @foreach($status_arr as $key => $status)
-    <li class="nav-item">
-        <?php 
-            $get_status = request()->get('status');
-            if($key == ""){
-                $status = 'All';
-                $key = '213';
-                $status_count[$key] = array_sum($status_count);
-            }
-            if($get_status == 'all'){
-                $key = '213';
-            }
-        ?>
-        <a class="nav-link {{ ($get_status === (string)$key) ? 'active' : '' }} "
-        href="{{url()->current()}}?status={{$key}}">
-            {{$status}} ( {{$status_count[$key] ?? '0'}} )
-        </a>
-    </li>
+    <?php
+        $get_status = request()->get('status');
+        if($key == ""){
+            $status = 'All';
+            $key = '213';
+            $status_count[$key] = array_sum($status_count);
+        }
+        if($get_status == 'all'){
+            $key = '213';
+        }
+        $is_active = ($get_status === (string)$key);
+    ?>
+    <a class="btn btn-sm {{ $is_active ? 'btn-primary' : 'btn-outline-primary' }}"
+    href="{{url()->current()}}?status={{$key}}">
+        {{$status}} ( {{$status_count[$key] ?? '0'}} )
+    </a>
     @endforeach
     @if(!empty($customoption))
     @foreach($customoption as $key => $value)
-    <li class="nav-item">
-        <?php 
+    <?php
         $get_status = request()->get($value['column']);
-        if( !empty($get_status) ){
-            $get_status = 'active';
-        }
-        ?>
-        <a class="nav-link {{ $get_status }} " aria-current="page" 
-        href="{{url()->current()}}?{{$value['column'].$value['operator'].$value['value']}}">
-            {{$value['title']}}
-            ( {{$dispatch_date_count[$value['map_value']] ?? '0'}} )
-        </a>
-    </li>
+        $is_active  = !empty($get_status);
+    ?>
+    <a class="btn btn-sm {{ $is_active ? 'btn-primary' : 'btn-outline-primary' }}" aria-current="page"
+    href="{{url()->current()}}?{{$value['column'].$value['operator'].$value['value']}}">
+        {{$value['title']}}
+        ( {{$dispatch_date_count[$value['map_value']] ?? '0'}} )
+    </a>
     @endforeach
     @endif
-</ul>
+</div>

@@ -1,5 +1,57 @@
 let lastCapturedImage = null;
 
+/*
+ * Shared file-type/preview helpers used by both the drop-area upload
+ * previews and the image-library modal (imagePress.blade.php), so a
+ * PDF/non-image file looks the same everywhere: an inline SVG icon
+ * showing the extension, no external icon asset, with the filename
+ * shown underneath.
+ */
+function getUrlExtension(url) {
+    try {
+        var clean = (url || '').split(/[?#]/)[0];
+        var parts = clean.split('.');
+        return parts.length > 1 ? parts.pop().toLowerCase() : '';
+    } catch (e) {
+        return '';
+    }
+}
+
+function isImageExtension(ext) {
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].indexOf((ext || '').toLowerCase()) !== -1;
+}
+
+function getUrlFileName(url) {
+    var clean = (url || '').split(/[?#]/)[0];
+    return decodeURIComponent(clean.split('/').pop() || '');
+}
+
+function buildFileIconSvg(extension, heightPx) {
+    heightPx = heightPx || 110;
+    return '<svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg" style="height:' + heightPx + 'px;width:100%;object-fit:contain;margin:auto;">' +
+        '<polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="337.21 4 441.88 108.67 441.88 508 63.24 508 63.24 4" fill="#fff" stroke-width="1.0694"></polygon>' +
+        '<path d="m330.38 24.098 95.693 95.693v368.11h-346.58v-463.8h250.89m3.097-7.4807h-261.47v478.77h361.54v-378.69z" fill="#ccc"></path>' +
+        '<g stroke-width="1.0694">' +
+        '<polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="338.84 0 445.88 107.02 338.84 107.02" fill="#999"></polygon>' +
+        '<polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="22.04 293.01 489.96 293.01 407.53 422.9 22.04 422.9" fill="#333"></polygon>' +
+        '<text x="235" y="375" text-anchor="middle" fill="#fff" font-size="70" font-weight="600">' + (extension || '').toUpperCase() + '</text>' +
+        '<polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="22.04 422.9 59.24 460.08 59.24 422.9" fill="#999"></polygon>' +
+        '</g>' +
+        '</svg>';
+}
+
+function buildFileIconWithName(fileName, heightPx) {
+    var parts = (fileName || '').split('.');
+    var ext = parts.length > 1 ? parts.pop() : '';
+    var baseName = parts.join('.');
+    if (baseName.length > 20) {
+        baseName = baseName.substring(0, 20);
+    }
+    var label = ext ? (baseName + '.' + ext) : baseName;
+    return '<span class="file-icon-wrap">' + buildFileIconSvg(ext, heightPx) +
+        '<span class="file-name-caption" title="' + (fileName || '').replace(/"/g, '&quot;') + '">' + label + '</span></span>';
+}
+
 function compressImage(file, maxWidth, maxHeight, quality) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -177,38 +229,46 @@ function cropImage(file) {
     });
 }
 
+/*
+ * Shared per-file processing for both file-picker and drag-and-drop uploads.
+ * Crop is opt-in (drop-area needs the "crop" class) and off by default;
+ * compress is likewise opt-in via the existing "compress" class.
+ */
+async function processFile(file, $dropArea) {
+    if (!file.type.startsWith('image/')) {
+        return file;
+    }
+    let workingFile = file;
+    if ($dropArea.hasClass("crop")) {
+        workingFile = await cropImage(workingFile);
+    }
+    if ($dropArea.hasClass("compress")) {
+        const img = new Image();
+        img.src = URL.createObjectURL(workingFile);
+        await new Promise(resolve => img.onload = resolve);
+        const maxWidth = 1524;
+        const maxHeight = 1524;
+        if (img.width > maxWidth || img.height > maxHeight) {
+            workingFile = await compressImage(workingFile, maxWidth, maxHeight, 1);
+        }
+    }
+    return workingFile;
+}
+
 $(document).ready(function() {
     $(document).on("change", 'input[type="file"]', function() {
         if ($(this).next().hasClass("drop-area")) {
             const $dropArea = $(this).next();
             const files = Array.from(this.files);
+            const inputEl = this;
             lastCapturedImage = files[0];
 
-            let processedFiles = files;
-            const processFile = async(file) => {
-                if (file.type.startsWith('image/')) {
-                    const croppedFile = await cropImage(file);
-                    if ($dropArea.hasClass("compress")) {
-                        const img = new Image();
-                        img.src = URL.createObjectURL(croppedFile);
-                        await new Promise(resolve => img.onload = resolve);
-                        const maxWidth = 1524;
-                        const maxHeight = 1524;
-                        if (img.width > maxWidth || img.height > maxHeight) {
-                            return compressImage(croppedFile, maxWidth, maxHeight, 1);
-                        }
-                    }
-                    return croppedFile;
-                }
-                return file;
-            };
-
-            Promise.all(files.map(processFile))
+            Promise.all(files.map(file => processFile(file, $dropArea)))
                 .then(processedFiles => {
                     const dataTransfer = new DataTransfer();
                     processedFiles.forEach(file => dataTransfer.items.add(file));
-                    this.files = dataTransfer.files;
-                    handleFiles(this.files, $dropArea);
+                    inputEl.files = dataTransfer.files;
+                    handleFiles(inputEl.files, $dropArea);
                 })
                 .catch(error => {
                     console.error("Error processing images:", error);
@@ -220,18 +280,6 @@ $(document).ready(function() {
     $(document).on("click", ".drop-area", function() {
         console.log($(this));
         $(this).prev().click();
-    });
-
-    $(document).on('paste', function (e) {
-        if ($('#image_modal').is(':visible')) {
-            var items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            for (var i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf("image") !== -1) {
-                    var file = items[i].getAsFile();
-                    handleFiles([file], $('#uploader_type').next());
-                }
-            }
-        }
     });
 
     // $(document).on("click", ".use-last-image-btn", function() {
@@ -270,7 +318,11 @@ function set_drop_images() {
             var uploaded_image_arr = uploaded_image.split(',');
             var div = '';
             for (let temp_uploaded_image of uploaded_image_arr) {
-                div += '<div style="width: auto;" class="mx-2 uploaded-image-container"><div style="padding: 5px;margin-bottom: 8px;text-align:center;"><img class="previewImage" src="' + temp_uploaded_image + '"></div></div>';
+                var ext = getUrlExtension(temp_uploaded_image);
+                var mediaHtml = isImageExtension(ext) ?
+                    '<img class="previewImage" src="' + temp_uploaded_image + '">' :
+                    buildFileIconWithName(getUrlFileName(temp_uploaded_image), 90);
+                div += '<div style="width: auto;" class="mx-2 uploaded-image-container"><div style="padding: 5px;margin-bottom: 8px;text-align:center;">' + mediaHtml + '</div></div>';
             }
             if (div !== '') {
                 $(el).find('.row').empty();
@@ -298,8 +350,16 @@ $(document).on('drop', ".drop-area", function(e) {
 
 function handleDrop(e, $passsed_this) {
     var dt = e.originalEvent.dataTransfer;
-    var files = dt.files;
-    handleFiles(files, $passsed_this);
+    var files = Array.from(dt.files);
+
+    Promise.all(files.map(file => processFile(file, $passsed_this)))
+        .then(processedFiles => {
+            handleFiles(processedFiles, $passsed_this);
+        })
+        .catch(error => {
+            console.error("Error processing dropped files:", error);
+            handleFiles(files, $passsed_this);
+        });
 }
 
 function handleFiles(files, $passsed_this) {
@@ -312,7 +372,7 @@ function handleFiles(files, $passsed_this) {
 }
 
 function previewFile(file, $passsed_this, passed_id) {
-    if ($passsed_this.find('.row').find('img').length <= 0) {
+    if ($passsed_this.find('.row').find('.uploaded-image-container').length <= 0) {
         $passsed_this.find('.row').empty();
     }
     if ($passsed_this.prev().attr('multiple') != 'multiple') {
@@ -321,13 +381,14 @@ function previewFile(file, $passsed_this, passed_id) {
     if (file.type.split('/')[0] == 'image') {
         var img = ' <img class="previewImage" src="' + URL.createObjectURL(file) + '" style="max-width: 100%;">';
     } else {
-        var img = '<svg style="height: 130px;  object-fit: contain; margin: auto;" enable-background="new 0 0 600 600" inkscape:version="0.92.3 (2405546, 2018-03-11)" sodipodi:docname="general.svg" version="1.1" viewBox="0 0 600 600" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"><sodipodi:namedview bordercolor="#666666" borderopacity="1" gridtolerance="10" guidetolerance="10" inkscape:current-layer="Layer_1" inkscape:cx="256" inkscape:cy="256" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-height="667" inkscape:window-maximized="1" inkscape:window-width="1366" inkscape:window-x="0" inkscape:window-y="27" inkscape:zoom="0.4609375" objecttolerance="10" pagecolor="#ffffff" showgrid="false"></sodipodi:namedview><polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="337.21 4 441.88 108.67 441.88 508 63.24 508 63.24 4" fill="#fff" stroke-width="1.0694"></polygon><path d="m330.38 24.098 95.693 95.693v368.11h-346.58v-463.8h250.89m3.097-7.4807h-261.47v478.77h361.54v-378.69z" fill="#ccc" inkscape:connector-curvature="0"></path><g stroke-width="1.0694"><polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="338.84 0 445.88 107.02 338.84 107.02" fill="#999"></polygon><polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="22.04 293.01 489.96 293.01 407.53 422.9 22.04 422.9" fill="#333"></polygon><text x="235" y="375" text-anchor="middle" fill="#fff" font-size="70" style="font-weight: 600;">' + file.name.split('.').pop().toUpperCase() + '</text><polygon transform="matrix(.93509 0 0 .93509 16.617 16.617)" points="22.04 422.9 59.24 460.08 59.24 422.9" fill="#999"></polygon></g></svg><div>' + file.name.split('.').slice(0, -1).join('.').substring(0, 15) + '.' + file.name.split('.').pop() + '</div>';
+        var img = buildFileIconWithName(file.name, 130);
     }
-    var div = '<div id="' + passed_id + '" style="width: auto;" class="mx-2 uploaded-image-container"><div style="padding: 5px;margin-bottom: 8px;text-align:center;">' + img + '</div><div class="progress progress-primary progress-da mb-3"><div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> </div></div>';
+    var div = '<div id="' + passed_id + '" style="width: auto;" class="mx-2 uploaded-image-container"><button type="button" class="remove-image-btn" data-image-id="" title="Remove">&times;</button><div style="padding: 5px;margin-bottom: 8px;text-align:center;">' + img + '</div><div class="progress progress-primary progress-da mb-3"><div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div> </div></div>';
     $passsed_this.find('.row').append(div);
 }
 
-function doUpload(file, $passsed_this, passed_id) {
+function doUpload(file, $passsed_this, passed_id, retryCount) {
+    retryCount = retryCount || 0;
     var fd = new FormData();
     if (typeof(iat) !== 'undefined' && iat.length != 0) {
         fd.append('image_alt_tag', iat);
@@ -360,6 +421,7 @@ function doUpload(file, $passsed_this, passed_id) {
                 /*$('body').css('pointer-events','none'); */
                 // console.log(response);
                 storePerformance($passsed_this, response);
+                $('#' + passed_id).find('.remove-image-btn').attr('data-image-id', response.image_id);
                 setTimeout(function() {
 
                     $('#' + passed_id).find('[role="progressbar"]').attr('aria-valuenow', '100').css('width', '100%').addClass('bg-success');
@@ -391,10 +453,14 @@ function doUpload(file, $passsed_this, passed_id) {
                 set_drop_images();
             },
             error: function(xhr, status, error) {
-                if (status === 'error' || status === 'timeout' || xhr.status === 0) {
-                    errorToast('Upload failed due to network issue.');
-                    errorToast('Retrying...');
-                    doUpload(file, $passsed_this, passed_id);
+                var maxRetries = 3;
+                if ((status === 'error' || status === 'timeout' || xhr.status === 0) && retryCount < maxRetries) {
+                    errorToast('Upload failed due to network issue. Retrying...');
+                    setTimeout(function() {
+                        doUpload(file, $passsed_this, passed_id, retryCount + 1);
+                    }, 1000);
+                } else if (retryCount >= maxRetries) {
+                    errorToast('Upload failed after multiple attempts. Please try again.');
                 } else {
                     errorToast('Error uploading file. Upload new file.');
                 }
@@ -405,7 +471,8 @@ function doUpload(file, $passsed_this, passed_id) {
     }
 }
 
-$(document).on('click', '.remove-image-btn', function() {
+$(document).on('click', '.remove-image-btn', function(e) {
+    e.stopPropagation();
     const $btn = $(this);
     const imageId = $btn.data('image-id');
     const $imageContainer = $btn.closest('.uploaded-image-container');

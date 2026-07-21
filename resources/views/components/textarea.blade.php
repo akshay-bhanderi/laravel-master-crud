@@ -12,13 +12,7 @@ if( !empty($attr) && $attr == 'slug' ){
 @if(empty($nolabel))
 <label for="{{$id ?? ''}}">{!! $label ?? '' !!} : </label>
 @endif
-<textarea 
-    placeholder="{{$placeholder ?? ''}}"
-    {{$attr ?? '' }} 
-    id="{{$id ?? ''}}" 
-    rows="{{$rows ?? ''}}" cols="{{$cols ?? ''}}" 
-    name="{{$name ?? ''}}" class="form-control {{ $class ?? '' }}" 
-    >{!! $data[$name] ?? $value ?? '' !!}</textarea>
+<textarea {{$attr ?? '' }} id="{{$id ?? ''}}" rows="{{$rows ?? ''}}" cols="{{$cols ?? ''}}" name="{{$name ?? ''}}" class="form-control {{ $class ?? '' }}" >{!! $data[$name] ?? $value ?? '' !!}</textarea>
 
 @if(!empty($class) && str_contains($class, 'summernote'))
 <script type="text/javascript">

@@ -9,4 +9,4 @@ if(empty($label)){
 @if(empty($nolabel))
 <label for="{{$id ?? ''}}">{!! $label ?? '' !!}</label>
 @endif
-<input inputmode="numeric" type="number" id="{{$id ?? ''}}" {!! $attr ?? ''!!}  name="{{$name ?? ''}}" class="form-control {{ $class ?? '' }}" value="{!! $value ?? $data[$name] ?? '' !!}" min="{{$min ?? '' }}" max="{{$max ?? '' }}" >
+<input step="{{ $step ?? 'any' }}" placeholder="{{$placeholder ?? ''}}" inputmode="numeric" type="number" id="{{$id ?? ''}}" {!! $attr ?? ''!!}  name="{{$name ?? ''}}" class="form-control {{ $class ?? '' }}" value="{!! $value ?? $data[$name] ?? '' !!}" min="{{$min ?? '' }}" max="{{$max ?? '' }}" >

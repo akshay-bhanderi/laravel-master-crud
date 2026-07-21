@@ -12,4 +12,4 @@ if( !empty($attr) && $attr == 'slug' ){
 @if(empty($nolabel))
 <label for="{{$id ?? ''}}">{!! $label ?? '' !!}</label>
 @endif
-<input placeholder="{{$placeholder ?? ''}}" type="text" id="{{$id ?? ''}}" {!! $attr ?? ''!!}  name="{{$name ?? ''}}" class="form-control {{ $class ?? '' }}" value="{!! $value ?? $data[$name] ?? '' !!}" >
+<input placeholder="{{$placeholder ?? ''}}" type="text" id="{{$id ?? ''}}" {!! $attr ?? ''!!}  name="{{$name ?? ''}}" class="form-control {{ $class ?? '' }}" value="{!! $value ?? $data[$name] ?? '' !!}"   @if(!empty($readonly) && $readonly) readonly @endif>

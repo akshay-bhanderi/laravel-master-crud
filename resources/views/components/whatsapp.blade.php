@@ -9,8 +9,8 @@
 <script
   src="https://liliya.io/public/assets/liliya-whatsapp-widget.js?v={{date('o-\WW')}}"
   data-phone="{{$whatsapp_no}}"
-  data-message="Namaste 🙏 Hi! How can We help you?"
-  data-name="Nilkanth Ayurveda"
+  data-message="Hi! How can We help you?"
+  data-name="{{ config('app.name') }}"
   data-status="Online"
   data-color="#25D366"
   data-position="bottom-right"

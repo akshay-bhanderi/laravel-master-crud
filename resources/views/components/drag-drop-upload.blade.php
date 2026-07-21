@@ -40,7 +40,7 @@
 
 @if($image_upload_type == 'select')
 <!-- type = file or image -->
-<div class="image_selection" image_selection style="{{$style ?? ''}}" onclick="image_modal_open(this)" type="{{$type ?? 'image'}}" uploaded-image="{{$uploaded ?? ''}}">
+<div class="image_selection" image_selection onclick="image_modal_open(this)" type="{{$type ?? 'image'}}" uploaded-image="{{$uploaded ?? ''}}">
     <div class="image_selection_child" image_selection_child {{$multiple ?? ''}}  >
        <i class="bi bi-cloud-arrow-up me-2 upload-icon"></i>
        <h3 class="img-upload-title"> {{ $lable ?? 'Click here to Select/upload Image'}}</h3>
@@ -64,7 +64,7 @@
 @else
 
 <input class="d-none" type="file" {{$multiple ?? ''}} accept="{{$accept ?? ''}}" {{$attr ?? ''}}>
-<div id="{{ uniqid('drop_area_') }}" class="drop-area image_selection {{$comporess ?? ''}}"  uploaded-image="{{$uploaded ?? ''}}"> 
+<div id="{{ uniqid('drop_area_') }}" class="drop-area image_selection {{$comporess ?? ''}} {{$crop ?? ''}}"  uploaded-image="{{$uploaded ?? ''}}">
     <div class="text-center row">
       <i class="bi bi-cloud-arrow-up mb-2 upload-icon"></i>
        <h3 class="img-upload-title"> {{ $lable ?? 'Click here to Select/upload Image'}}</h3>

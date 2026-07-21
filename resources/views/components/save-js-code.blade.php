@@ -3,16 +3,16 @@ $(document).ready(function(){
     var dd = {
         beforeSend: function() {
             // Disable submit button
-            $("#{{ $formId ?? 'add_form' }}").find('button[type="submit"]').prop('disabled', true);
-            $("#{{ $formId ?? 'add_form' }}").find('button[type="submit"] > span').removeClass('d-none');
+            $("#{{ $formId ?? 'a_form_id' }}").find('button[type="submit"]').prop('disabled', true);
+            $("#{{ $formId ?? 'a_form_id' }}").find('button[type="submit"] > span').removeClass('d-none');
         },
         uploadProgress: function(event, position, total, percentComplete) {},
         success: function() {},
         complete: function(response) {
             var result = jQuery.parseJSON(response.responseText);
             // Re-enable submit button
-            $("#{{ $formId ?? 'add_form' }}").find('button[type="submit"]').prop('disabled', false);
-            $("#{{ $formId ?? 'add_form' }}").find('button[type="submit"] > span').addClass('d-none');
+            $("#{{ $formId ?? 'a_form_id' }}").find('button[type="submit"]').prop('disabled', false);
+            $("#{{ $formId ?? 'a_form_id' }}").find('button[type="submit"] > span').addClass('d-none');
             
             if (result.status == 200) {
                 successToast(result.message);
@@ -20,23 +20,20 @@ $(document).ready(function(){
                     try{
                         {!! $script !!}
                     }catch(e){
-                        <?php 
-                            try { $link = route($route.'.master'); ?>
-
-                            window.open('<?php echo $link ?>','_self')
-
-                        <?php  } catch (\Exception $e) { ?>
-
-                            window.location.reload();
-
-                        <?php } ?>
+                        setTimeout(function() {
+                            window.open('<?php echo route($route.'.master') ?>','_self')
+                        }, 1000);
                     }
                 @else
                     var redirectUrl = '{{ request()->get('redirect') }}';
                     if (redirectUrl) {
-                        window.open(decodeURIComponent(redirectUrl),'_self');
+                        setTimeout(function() {
+                            window.open(decodeURIComponent(redirectUrl),'_self');
+                        }, 1000);
                     } else {
-                        window.open('<?php echo route($route.'.master') ?>','_self')
+                        setTimeout(function() {
+                            window.open('<?php echo route($route.'.master') ?>','_self')
+                        }, 1000);
                     }
                 @endif
             }else{
@@ -45,10 +42,10 @@ $(document).ready(function(){
         },
         error: function() {
             // Re-enable submit button on error
-            $("#{{ $formId ?? 'add_form' }}").find('button[type="submit"]').prop('disabled', false);
-            $("#{{ $formId ?? 'add_form' }}").find('button[type="submit"] > span').addClass('d-none');
+            $("#{{ $formId ?? 'a_form_id' }}").find('button[type="submit"]').prop('disabled', false);
+            $("#{{ $formId ?? 'a_form_id' }}").find('button[type="submit"] > span').addClass('d-none');
         }
     };
-    jQuery("#{{ $formId ?? 'add_form' }}").ajaxForm(dd);
+    jQuery("#{{ $formId ?? 'a_form_id' }}").ajaxForm(dd);
 });
 </script>

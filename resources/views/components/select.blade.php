@@ -17,6 +17,7 @@
 @if(empty($nolabel))
 <label for="{{$id ?? ''}}">{!! $label ?? '' !!}</label>
 @endif
+
 <select {{$attr ?? ''}} class="form-control {{$class ?? ''}}" name="{{$name ?? ''}}" id="{{$id ?? ''}}" {{$multiple ?? ''}} data-selected="{{$selected ?? $data[$name] ?? ''}}">
 	@if( !empty($selectoption))  
 		<option>{{$selectoption ?? 'Select Option'}}</option>

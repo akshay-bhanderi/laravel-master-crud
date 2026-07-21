@@ -53,6 +53,10 @@ class MasterCrudServiceProvider extends ServiceProvider
             __DIR__.'/../stubs' => base_path('stubs/master-crud'),
         ], 'master-crud-stubs');
 
+        $this->publishes([
+            __DIR__.'/../public/firebase-messaging-sw.js' => public_path('firebase-messaging-sw.js'),
+        ], 'master-crud-firebase');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 MakeMasterCrudCommand::class,
