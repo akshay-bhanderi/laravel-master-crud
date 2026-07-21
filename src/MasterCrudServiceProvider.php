@@ -3,7 +3,9 @@
 namespace AkshayBhanderi\LaravelMasterCrud;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use AkshayBhanderi\LaravelMasterCrud\Http\Controllers\PackageAssetController;
 
 class MasterCrudServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,15 @@ class MasterCrudServiceProvider extends ServiceProvider
         $this->app['view']->addLocation(__DIR__.'/../resources/views');
 
         Blade::anonymousComponentPath(__DIR__.'/../resources/views/components');
+
+        // Fallback for static assets (DataTables, Select2, RichTextEditor, indrop,
+        // iziToast, jquery.form.js). The web server always serves a real file in
+        // the app's public/ directly, without ever reaching Laravel — so this
+        // route only fires for paths that don't physically exist there, and an
+        // app-local file at the same path overrides the package's copy for free.
+        Route::get('assets/inlancer_portal/{path}', [PackageAssetController::class, 'serve'])
+            ->where('path', '.*')
+            ->name('master-crud.assets');
 
         $this->publishes([
             __DIR__.'/../config/master-crud.php' => config_path('master-crud.php'),
