@@ -19,6 +19,11 @@ class MasterCrudServiceProvider extends ServiceProvider
     {
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'master-crud');
 
+        // Auto-discovered, no publish step needed. Each migration guards
+        // itself with Schema::hasTable() so it's a safe no-op in apps that
+        // already have users/user_roles (own tables/data untouched).
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
         // Fallback search path for plain (non-namespaced) view names such as
         // 'portal.master.banner.add'. The app's own resources/views is always
         // checked first, so dropping a same-path file there overrides the

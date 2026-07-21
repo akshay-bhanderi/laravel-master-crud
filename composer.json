@@ -9,7 +9,8 @@
     },
     "autoload": {
         "psr-4": {
-            "AkshayBhanderi\\LaravelMasterCrud\\": "src/"
+            "AkshayBhanderi\\LaravelMasterCrud\\": "src/",
+            "AkshayBhanderi\\LaravelMasterCrud\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "extra": {
