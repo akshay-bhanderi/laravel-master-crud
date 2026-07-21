@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Models\portal\master;
+
+use Illuminate\Database\Eloquent\Model;
+use AkshayBhanderi\LaravelMasterCrud\Concerns\HasMasterCrudModel;
+
+class {{modelClass}} extends Model
+{
+    use HasMasterCrudModel;
+
+    private static $table_name = '{{table}}';
+    private static $primary_id = '{{pk}}';
+}

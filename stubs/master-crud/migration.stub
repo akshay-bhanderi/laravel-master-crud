@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('{{table}}', function (Blueprint $table) {
+            $table->increments('{{pk}}');
+{{columns}}
+            $table->integer('status')->default(1);
+            $table->integer('is_delete')->default(0);
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('{{table}}');
+    }
+};

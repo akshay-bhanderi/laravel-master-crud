@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use AkshayBhanderi\LaravelMasterCrud\Http\Controllers\PackageAssetController;
+use AkshayBhanderi\LaravelMasterCrud\Console\Commands\MakeMasterCrudCommand;
 
 class MasterCrudServiceProvider extends ServiceProvider
 {
@@ -46,5 +47,11 @@ class MasterCrudServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../stubs' => base_path('stubs/master-crud'),
         ], 'master-crud-stubs');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                MakeMasterCrudCommand::class,
+            ]);
+        }
     }
 }

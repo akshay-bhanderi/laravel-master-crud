@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers\portal\master;
+
+use App\Http\Controllers\portal\MasterController;
+use Illuminate\Http\Request;
+use App\Models\portal\master\{{modelClass}};
+use AkshayBhanderi\LaravelMasterCrud\Concerns\HasMasterCrudActions;
+
+
+class {{modelClass}}Controller extends MasterController
+{
+    use HasMasterCrudActions;
+
+    private $table;
+    protected $model = {{modelClass}}::class;
+    protected $view_template = 'add';
+
+    protected $validation_rules = [
+{{validationRules}}
+    ];
+
+    public function __construct(){
+
+        $this->table = '{{table}}';
+        $this->route_name = '{{routeName}}';
+        $this->view_title = '{{viewTitle}}';
+
+        $this->view_path = 'portal.master.'.$this->route_name.'.';
+
+        $grid_columns = [
+{{gridColumns}}
+        ];
+        $this->columns = [{{columnsArray}}];
+        $this->order_by       = 0;
+        $this->search_columns = [{{searchColumns}}];
+        $this->order_by_type  = "DESC";
+
+        \View::share('grid', [
+            'show_btn'              =>  true,
+            'btn_name'              =>  'Add '.str_replace('-', ' ', $this->route_name),
+            'btn_url'               =>  route($this->route_name.'.add'),
+            'grid_columns'          =>  $grid_columns,
+            'grid_order_by'         =>  $this->order_by,
+            'grid_order_by_type'    =>  $this->order_by_type,
+            'grid_tbl_name'         =>  $this->table,
+            'grid_tbl_length'       =>  '25',
+        ]);
+
+        \View::share('active', $this->route_name);
+        \View::share('sub', $this->route_name);
+        \View::share('title', $this->view_title.' Management');
+        \View::share('route', $this->route_name);
+        \View::share('page_title', $this->route_name);
+        \View::share('breadcrumb', $this->breadcrumb());
+    }
+
+    protected function dt_row($row)
+    {
+        return [
+{{dtRowBody}}
+        ];
+    }
+
+}
